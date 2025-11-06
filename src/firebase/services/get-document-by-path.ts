@@ -1,6 +1,6 @@
 import { doc, getDoc, type DocumentData } from "firebase/firestore";
 
-import { firestore } from "@/firebase/config";
+import { firestore } from "@/firebase/client";
 
 interface GetDocumentOptions {
   path: string;
@@ -32,6 +32,6 @@ export const getDocumentByPath = async <T extends DocumentData>({
   } catch (err) {
     console.error(`Erro ao buscar documento em "${path}":`, err);
 
-    throw new Error(`Não foi possível carregar o documento de "${path}".`);
+    throw err;
   }
 };

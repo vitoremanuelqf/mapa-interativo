@@ -13,7 +13,7 @@ import {
   type WhereFilterOp,
 } from "firebase/firestore";
 
-import { firestore } from "@/firebase/config";
+import { firestore } from "@/firebase/client";
 
 interface GetCollectionOptions {
   path: string;
