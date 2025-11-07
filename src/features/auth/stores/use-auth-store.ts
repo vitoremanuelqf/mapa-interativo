@@ -8,6 +8,7 @@ import { getDocumentByPath } from "@/firebase/services/get-document-by-path";
 import { createUser } from "@/features/user/services/create-user";
 
 import { IUser } from "@/features/user/models/user";
+import { ResetPasswordCredentials, SignInCredentials, SignUpCredentials } from "../models/credential";
 
 type AuthStore = {
   user: IUser | null;
@@ -17,16 +18,9 @@ type AuthStore = {
   isAuthenticated: boolean;
 
   signInWithGoogle: () => Promise<void>;
-  signInWithEmailAndPassword: (
-    email: string,
-    password: string,
-  ) => Promise<void>;
-  signUpWithEmailAndPassword: (
-    email: string,
-    password: string,
-    displayName: string,
-  ) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  signInWithEmailAndPassword: (credentials: SignInCredentials) => Promise<void>;
+  signUpWithEmailAndPassword: (credentials: SignUpCredentials) => Promise<void>;
+  resetPassword: (credentials: ResetPasswordCredentials) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -46,6 +40,7 @@ export const useAuthStore = create<AuthStore>((set) => {
   };
 
   FirebaseAuth.onAuthStateChanged(auth, async (user) => {
+    console.log("🚀 ~ user:", user)
     if (user?.uid) {
       let currentUser: IUser | null = await getDocumentByPath({
         path: `users/${user.uid}`,
@@ -84,14 +79,14 @@ export const useAuthStore = create<AuthStore>((set) => {
       }
     },
 
-    signInWithEmailAndPassword: async (email, password) => {
+    signInWithEmailAndPassword: async (credentials: SignInCredentials) => {
       set({ isLoading: true, error: null });
 
       try {
         const { user } = await FirebaseAuth.signInWithEmailAndPassword(
           auth,
-          email,
-          password,
+          credentials.email,
+          credentials.password,
         );
         const token = await user.getIdToken();
         console.log("🚀 ~ token:", token);
@@ -106,19 +101,20 @@ export const useAuthStore = create<AuthStore>((set) => {
       }
     },
 
-    signUpWithEmailAndPassword: async (email, password, displayName) => {
+    signUpWithEmailAndPassword: async (credentials: SignUpCredentials) => {
+      console.log("🚀 ~ credentials:", credentials)
       set({ isLoading: true, error: null });
 
       try {
         const { user } = await FirebaseAuth.createUserWithEmailAndPassword(
           auth,
-          email,
-          password,
+          credentials.email,
+          credentials.password,
         );
-        await FirebaseAuth.updateProfile(user, { displayName });
+        await FirebaseAuth.updateProfile(user, { displayName: credentials.displayName });
         await createUser({
           uid: user.uid,
-          displayName,
+          displayName: credentials.displayName,
           email: user.email,
         });
 
@@ -135,11 +131,11 @@ export const useAuthStore = create<AuthStore>((set) => {
       }
     },
 
-    resetPassword: async (email) => {
+    resetPassword: async (credentials: ResetPasswordCredentials) => {
       set({ isLoading: true, error: null });
 
       try {
-        await FirebaseAuth.sendPasswordResetEmail(auth, email);
+        await FirebaseAuth.sendPasswordResetEmail(auth, credentials.email);
 
         set({ error: null });
       } catch (error) {

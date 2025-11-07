@@ -34,42 +34,51 @@ import { Separator } from "@/components/ui/separator";
 
 import { toast } from "sonner";
 
-import { signInSchema } from "./sign-in-form-schema";
+import { signUpSchema } from "./sign-up-form-schema";
 import { formatErrorMessages } from "@/lib/messages/format-error-messages";
-import { useEffect } from "react";
 
-export function SignInForm() {
+export function SignUpForm() {
   const { push } = useRouter();
 
-  const { signInWithEmailAndPassword, signInWithGoogle, isLoading, error } =
+  const { signUpWithEmailAndPassword, signInWithGoogle, isLoading, error } =
     useAuthStore();
 
-  const form = useForm<z.infer<typeof signInSchema>>({
-    resolver: zodResolver(signInSchema),
+  const form = useForm<z.infer<typeof signUpSchema>>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
       email: "",
       password: "",
+      passwordConfirm: "",
     },
   });
 
   async function handleSignInWithGoogle() {
-    await signInWithGoogle()
+    await signInWithGoogle().finally(() => {
+      if (error?.code) {
+        const errorMessage = formatErrorMessages("signin", error.code);
+
+        toast(errorMessage.title, {
+          description: errorMessage.description,
+          position: "top-right",
+        });
+      }
+    });
   }
 
-  async function onSubmit(values: z.infer<typeof signInSchema>) {
-    await signInWithEmailAndPassword(values)
+  async function onSubmit(values: z.infer<typeof signUpSchema>) {
+    await signUpWithEmailAndPassword(values).finally(
+      () => {
+        if (error?.code) {
+          const errorMessage = formatErrorMessages("signin", error.code);
+
+          toast(errorMessage.title, {
+            description: errorMessage.description,
+            position: "top-right",
+          });
+        }
+      },
+    );
   }
-
-  useEffect(() => {
-    if (error?.code) {
-      const errorMessage = formatErrorMessages("signin", error.code);
-
-      toast(errorMessage.title, {
-        description: errorMessage.description,
-        position: "top-right",
-      });
-    }
-  }, [error]);
 
   return (
     <Form {...form}>
@@ -83,13 +92,29 @@ export function SignInForm() {
               height={143}
               className="w-full max-w-60 m-auto mb-4"
             />
-            <CardTitle>Acessar conta:</CardTitle>
-            <CardDescription>
-              Entre com suas credenciais para acessar sua conta.
-            </CardDescription>
+            <CardTitle>Criar conta:</CardTitle>
+            <CardDescription>Inscreva-se para começar.</CardDescription>
           </CardHeader>
 
           <CardContent className="w-full flex flex-col gap-4">
+            <FormField
+              control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome:</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Informe seu nome:"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-400" />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="email"
@@ -126,6 +151,24 @@ export function SignInForm() {
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="passwordConfirm"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirmar senha:</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Confirme sua senha:"
+                      type="password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-400" />
+                </FormItem>
+              )}
+            />
+
             <NextLink
               href={"/recuperar-senha"}
               className="ml-auto text-xs text-muted-foreground hover:underline"
@@ -137,7 +180,7 @@ export function SignInForm() {
               {isLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Entrar"
+                "Criar"
               )}
             </Button>
 
@@ -168,7 +211,7 @@ export function SignInForm() {
               <Separator className="shrink" />
 
               <span className="min-w-fit text-sm text-muted-foreground">
-                Não tem uma conta?
+                Já possui uma conta?
               </span>
 
               <Separator className="shrink" />
@@ -177,13 +220,13 @@ export function SignInForm() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => push("/auth/sign-up")}
+              onClick={() => push("/auth/sign-in")}
               disabled={isLoading}
             >
               {isLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Criar conta"
+                "Entrar"
               )}
             </Button>
           </CardContent>
