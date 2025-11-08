@@ -88,13 +88,13 @@ export const signUpErrors: Record<
 };
 
 export const formatErrorMessages = (
-  type: "resetpassword" | "signin" | "signup",
+  type: "reset-password" | "sign-in" | "sign-up",
   code: string,
 ) => {
   const errorMessages = {
-    resetpassword: resetPasswordErrors,
-    signin: signInErrors,
-    signup: signUpErrors,
+    "reset-password": resetPasswordErrors,
+    "sign-in": signInErrors,
+    "sign-up": signUpErrors,
   };
   return (
     errorMessages[type][code] || {

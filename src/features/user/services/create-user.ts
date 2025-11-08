@@ -1,29 +1,35 @@
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
 
 import { firestore } from "@/firebase/client";
 
-interface createUserProps {
+interface ICreateUserProps {
   uid: string;
-  displayName: string | null;
-  email: string | null;
-  photoURL?: string | null;
 }
 
-export const createUser = async (user: createUserProps): Promise<void> => {
+interface IUser {
+  createdAt: Timestamp;
+}
+
+export const createUser = async (user: ICreateUserProps): Promise<IUser> => {
   try {
     const userRef = doc(firestore, "users", user.uid);
     const userSnap = await getDoc(userRef);
 
     if (userSnap.exists()) {
-      return;
+      return userSnap.data() as IUser;
     }
 
     await setDoc(userRef, {
-      displayName: user.displayName,
-      email: user.email,
-      photoURL: user?.photoURL,
       createdAt: serverTimestamp(),
     });
+
+    return { createdAt: serverTimestamp() as Timestamp };
   } catch (err) {
     console.error("Erro ao criar usuário:", err);
     throw err;

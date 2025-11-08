@@ -8,9 +8,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import { useAuthErrorToast } from "@/features/auth/hooks/use-auth-error-toast";
 import { useAuthStore } from "@/features/auth/stores/use-auth-store";
-
-import Logo from "/logo.svg";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,13 +31,12 @@ import {
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
-import { toast } from "sonner";
-
 import { signUpSchema } from "./sign-up-form-schema";
-import { formatErrorMessages } from "@/lib/messages/format-error-messages";
 
 export function SignUpForm() {
   const { push } = useRouter();
+
+  useAuthErrorToast("sign-up");
 
   const { signUpWithEmailAndPassword, signInWithGoogle, isLoading, error } =
     useAuthStore();
@@ -46,6 +44,7 @@ export function SignUpForm() {
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
+      displayName: "",
       email: "",
       password: "",
       passwordConfirm: "",
@@ -53,31 +52,15 @@ export function SignUpForm() {
   });
 
   async function handleSignInWithGoogle() {
-    await signInWithGoogle().finally(() => {
-      if (error?.code) {
-        const errorMessage = formatErrorMessages("signin", error.code);
-
-        toast(errorMessage.title, {
-          description: errorMessage.description,
-          position: "top-right",
-        });
-      }
+    await signInWithGoogle().then(() => {
+      push("/");
     });
   }
 
   async function onSubmit(values: z.infer<typeof signUpSchema>) {
-    await signUpWithEmailAndPassword(values).finally(
-      () => {
-        if (error?.code) {
-          const errorMessage = formatErrorMessages("signin", error.code);
-
-          toast(errorMessage.title, {
-            description: errorMessage.description,
-            position: "top-right",
-          });
-        }
-      },
-    );
+    await signUpWithEmailAndPassword(values).then(() => {
+      push("/");
+    });
   }
 
   return (

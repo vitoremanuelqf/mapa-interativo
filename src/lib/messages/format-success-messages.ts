@@ -15,12 +15,12 @@ export const signUpSuccess = {
 };
 
 export const formatSuccessMessages = (
-  type: "resetpassword" | "signin" | "signup",
+  type: "reset-password" | "sign-in" | "sign-up",
 ) => {
   const successMessages = {
-    resetpassword: resetPasswordSuccess,
-    signin: signInSuccess,
-    signup: signUpSuccess,
+    "reset-password": resetPasswordSuccess,
+    "sign-in": signInSuccess,
+    "sign-up": signUpSuccess,
   };
   return successMessages[type];
 };

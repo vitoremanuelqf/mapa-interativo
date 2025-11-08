@@ -3,23 +3,36 @@ import { create } from "zustand";
 import { auth } from "@/firebase/client";
 
 import * as FirebaseAuth from "firebase/auth";
+import { Timestamp } from "firebase/firestore";
+
+import { deleteCookie, setCookie } from "cookies-next/client";
 
 import { getDocumentByPath } from "@/firebase/services/get-document-by-path";
 import { createUser } from "@/features/user/services/create-user";
 
 import { IUser } from "@/features/user/models/user";
-import { ResetPasswordCredentials, SignInCredentials, SignUpCredentials } from "../models/credential";
+import {
+  ResetPasswordCredentials,
+  SignInCredentials,
+  SignUpCredentials,
+} from "../models/credential";
 
 type AuthStore = {
   user: IUser | null;
+
   error: FirebaseAuth.AuthError | null;
+  clearError: () => void;
 
   isLoading: boolean;
   isAuthenticated: boolean;
 
-  signInWithGoogle: () => Promise<void>;
-  signInWithEmailAndPassword: (credentials: SignInCredentials) => Promise<void>;
-  signUpWithEmailAndPassword: (credentials: SignUpCredentials) => Promise<void>;
+  signInWithGoogle: () => Promise<FirebaseAuth.User>;
+  signInWithEmailAndPassword: (
+    credentials: SignInCredentials,
+  ) => Promise<FirebaseAuth.User>;
+  signUpWithEmailAndPassword: (
+    credentials: SignUpCredentials,
+  ) => Promise<FirebaseAuth.User>;
   resetPassword: (credentials: ResetPasswordCredentials) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -27,34 +40,46 @@ type AuthStore = {
 export const useAuthStore = create<AuthStore>((set) => {
   const initialState: AuthStore = {
     user: null,
+
     error: null,
+    clearError: () => set({ error: null }),
 
     isLoading: false,
     isAuthenticated: false,
 
-    signInWithGoogle: async () => {},
-    signInWithEmailAndPassword: async () => {},
-    signUpWithEmailAndPassword: async () => {},
-    resetPassword: async () => {},
+    signInWithGoogle: async (): Promise<FirebaseAuth.User> => {
+      throw new Error("Sign in with Google not implemented");
+    },
+
+    signInWithEmailAndPassword: async (): Promise<FirebaseAuth.User> => {
+      throw new Error("Sign in with Email and Password not implemented");
+    },
+
+    signUpWithEmailAndPassword: async (): Promise<FirebaseAuth.User> => {
+      throw new Error("Sign up with Email and Password not implemented");
+    },
     signOut: async () => {},
+
+    resetPassword: async () => {},
   };
 
   FirebaseAuth.onAuthStateChanged(auth, async (user) => {
-    console.log("🚀 ~ user:", user)
     if (user?.uid) {
-      let currentUser: IUser | null = await getDocumentByPath({
-        path: `users/${user.uid}`,
+      const token = await user?.getIdToken();
+      setCookie("token", token, { path: "/", secure: true });
+
+      set({
+        user: {
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user?.photoURL,
+        },
+        isAuthenticated: !!user,
       });
-
-      if (!currentUser) {
-        await createUser(user);
-
-        currentUser = await getDocumentByPath({ path: `users/${user.uid}` });
-      }
-
-      set({ user: currentUser, isAuthenticated: !!currentUser });
     } else {
       set({ user: null, isAuthenticated: false });
+      deleteCookie("token", { path: "/" });
     }
   });
 
@@ -65,15 +90,24 @@ export const useAuthStore = create<AuthStore>((set) => {
 
       try {
         const provider = new FirebaseAuth.GoogleAuthProvider();
-        const result = await FirebaseAuth.signInWithPopup(auth, provider);
-        const token = await result.user.getIdToken();
-        console.log("🚀 ~ token:", token);
+        const { user } = await FirebaseAuth.signInWithPopup(auth, provider);
+
+        await createUser({
+          uid: user.uid,
+        });
+
+        const token = await user.getIdToken();
+        setCookie("token", token, { path: "/", secure: true });
 
         set({ error: null });
+
+        return user;
       } catch (error) {
         console.error("Erro ao fazer login com Google:", error);
 
         set({ error: error as FirebaseAuth.AuthError });
+
+        throw error;
       } finally {
         set({ isLoading: false });
       }
@@ -88,21 +122,25 @@ export const useAuthStore = create<AuthStore>((set) => {
           credentials.email,
           credentials.password,
         );
+
         const token = await user.getIdToken();
-        console.log("🚀 ~ token:", token);
+        setCookie("token", token, { path: "/", secure: true });
 
         set({ error: null });
+
+        return user;
       } catch (error) {
         console.error("Erro ao fazer login com email/senha:", error);
 
         set({ error: error as FirebaseAuth.AuthError });
+
+        throw error;
       } finally {
         set({ isLoading: false });
       }
     },
 
     signUpWithEmailAndPassword: async (credentials: SignUpCredentials) => {
-      console.log("🚀 ~ credentials:", credentials)
       set({ isLoading: true, error: null });
 
       try {
@@ -111,21 +149,34 @@ export const useAuthStore = create<AuthStore>((set) => {
           credentials.email,
           credentials.password,
         );
-        await FirebaseAuth.updateProfile(user, { displayName: credentials.displayName });
+        await FirebaseAuth.updateProfile(user, {
+          displayName: credentials.displayName,
+        });
+
         await createUser({
           uid: user.uid,
-          displayName: credentials.displayName,
-          email: user.email,
         });
 
         const token = await user.getIdToken();
-        console.log("🚀 ~ token:", token);
+        setCookie("token", token, { path: "/", secure: true });
 
-        set({ error: null });
+        set({
+          error: null,
+          user: {
+            uid: user.uid,
+            displayName: credentials.displayName,
+            email: user.email,
+            photoURL: user?.photoURL,
+          },
+        });
+
+        return user;
       } catch (error) {
         console.error("Erro ao criar conta:", error);
 
         set({ error: error as FirebaseAuth.AuthError });
+
+        throw error;
       } finally {
         set({ isLoading: false });
       }
@@ -158,8 +209,10 @@ export const useAuthStore = create<AuthStore>((set) => {
         console.error("Erro ao fazer logout:", error);
 
         set({ error: error as FirebaseAuth.AuthError });
+        throw error;
       } finally {
         set({ isLoading: false });
+        deleteCookie("token", { path: "/" });
       }
     },
   };

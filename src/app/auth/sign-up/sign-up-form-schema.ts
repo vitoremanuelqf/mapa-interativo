@@ -2,8 +2,7 @@ import { z } from "zod";
 
 export const signUpSchema = z
   .object({
-    displayName: z
-      .string("O nome é obrigatório."),
+    displayName: z.string("O nome é obrigatório."),
     email: z
       .email("O e-mail informado é inválido.")
       .min(1, "O e-mail é obrigatório."),
@@ -11,9 +10,7 @@ export const signUpSchema = z
       .string()
       .min(1, "A senha é obrigatória.")
       .min(6, "A senha deve conter no mínimo 6 caracteres."),
-    passwordConfirm: z
-      .string()
-      .min(1, "A confirmação de senha é obrigatória."),
+    passwordConfirm: z.string().min(1, "A confirmação de senha é obrigatória."),
   })
   .superRefine((data, ctx) => {
     if (data.password !== data.passwordConfirm) {

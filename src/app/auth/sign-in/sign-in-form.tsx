@@ -8,9 +8,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import { useAuthErrorToast } from "@/features/auth/hooks/use-auth-error-toast";
 import { useAuthStore } from "@/features/auth/stores/use-auth-store";
-
-import Logo from "/logo.svg";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,14 +31,12 @@ import {
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
-import { toast } from "sonner";
-
 import { signInSchema } from "./sign-in-form-schema";
-import { formatErrorMessages } from "@/lib/messages/format-error-messages";
-import { useEffect } from "react";
 
 export function SignInForm() {
   const { push } = useRouter();
+
+  useAuthErrorToast("sign-in");
 
   const { signInWithEmailAndPassword, signInWithGoogle, isLoading, error } =
     useAuthStore();
@@ -53,23 +50,16 @@ export function SignInForm() {
   });
 
   async function handleSignInWithGoogle() {
-    await signInWithGoogle()
+    await signInWithGoogle().then(() => {
+      push("/");
+    });
   }
 
   async function onSubmit(values: z.infer<typeof signInSchema>) {
-    await signInWithEmailAndPassword(values)
+    await signInWithEmailAndPassword(values).then(() => {
+      push("/");
+    });
   }
-
-  useEffect(() => {
-    if (error?.code) {
-      const errorMessage = formatErrorMessages("signin", error.code);
-
-      toast(errorMessage.title, {
-        description: errorMessage.description,
-        position: "top-right",
-      });
-    }
-  }, [error]);
 
   return (
     <Form {...form}>
