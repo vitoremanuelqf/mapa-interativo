@@ -12,3 +12,8 @@ export type SignUpCredentials = {
 export type ResetPasswordCredentials = {
   email: string;
 };
+
+export type ConfirmNewPasswordCredentials = {
+  oobCode: string;
+  password: string;
+};

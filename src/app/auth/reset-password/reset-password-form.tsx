@@ -1,6 +1,5 @@
 "use client";
 
-import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useForm } from "react-hook-form";
@@ -31,23 +30,19 @@ import {
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
-import { signUpSchema } from "./sign-up-form-schema";
+import { resetPasswordSchema } from "./reset-password-form-schema";
 
-export function SignUpForm() {
+export function ResetPasswordForm() {
   const { push } = useRouter();
 
-  useAuthErrorToast("sign-up");
+  useAuthErrorToast("reset-password");
 
-  const { signUpWithEmailAndPassword, signInWithGoogle, isLoading } =
-    useAuthStore();
+  const { resetPassword, signInWithGoogle, isLoading } = useAuthStore();
 
-  const form = useForm<z.infer<typeof signUpSchema>>({
-    resolver: zodResolver(signUpSchema),
+  const form = useForm<z.infer<typeof resetPasswordSchema>>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      displayName: "",
       email: "",
-      password: "",
-      passwordConfirm: "",
     },
   });
 
@@ -57,9 +52,9 @@ export function SignUpForm() {
     });
   }
 
-  async function onSubmit(values: z.infer<typeof signUpSchema>) {
-    await signUpWithEmailAndPassword(values).then(() => {
-      push("/");
+  async function onSubmit(values: z.infer<typeof resetPasswordSchema>) {
+    await resetPassword(values).then(() => {
+      push("/auth/sign-in");
     });
   }
 
@@ -75,29 +70,13 @@ export function SignUpForm() {
               height={143}
               className="w-full max-w-60 m-auto mb-4"
             />
-            <CardTitle>Criar conta:</CardTitle>
-            <CardDescription>Inscreva-se para começar.</CardDescription>
+            <CardTitle>Recuperar senha:</CardTitle>
+            <CardDescription>
+              Digite seu e-mail para receber o link de redefinição de senha.
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="w-full flex flex-col gap-4">
-            <FormField
-              control={form.control}
-              name="displayName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome:</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Informe seu nome:"
-                      type="text"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-400" />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="email"
@@ -116,54 +95,15 @@ export function SignUpForm() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Senha:</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Informe sua senha:"
-                      type="password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-400" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="passwordConfirm"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmar senha:</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Confirme sua senha:"
-                      type="password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-400" />
-                </FormItem>
-              )}
-            />
-
-            <NextLink
-              href={"/auth/reset-password"}
-              className="ml-auto text-xs text-muted-foreground hover:underline"
-            >
-              Esqueceu sua senha?
-            </NextLink>
+            <p className="text-xs text-muted-foreground">
+              Um email de redefinição será enviado.
+            </p>
 
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Criar"
+                "Enviar"
               )}
             </Button>
 
@@ -194,7 +134,7 @@ export function SignUpForm() {
               <Separator className="shrink" />
 
               <span className="min-w-fit text-sm text-muted-foreground">
-                Já possui uma conta?
+                Não tem uma conta?
               </span>
 
               <Separator className="shrink" />
@@ -203,13 +143,13 @@ export function SignUpForm() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => push("/auth/sign-in")}
+              onClick={() => push("/auth/sign-up")}
               disabled={isLoading}
             >
               {isLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Entrar"
+                "Criar conta"
               )}
             </Button>
           </CardContent>

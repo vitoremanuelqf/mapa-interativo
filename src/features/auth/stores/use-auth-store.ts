@@ -3,15 +3,14 @@ import { create } from "zustand";
 import { auth } from "@/firebase/client";
 
 import * as FirebaseAuth from "firebase/auth";
-import { Timestamp } from "firebase/firestore";
 
 import { deleteCookie, setCookie } from "cookies-next/client";
 
-import { getDocumentByPath } from "@/firebase/services/get-document-by-path";
 import { createUser } from "@/features/user/services/create-user";
 
 import { IUser } from "@/features/user/models/user";
 import {
+  ConfirmNewPasswordCredentials,
   ResetPasswordCredentials,
   SignInCredentials,
   SignUpCredentials,
@@ -33,6 +32,9 @@ type AuthStore = {
   signUpWithEmailAndPassword: (
     credentials: SignUpCredentials,
   ) => Promise<FirebaseAuth.User>;
+  confirmNewPassword: (
+    credentials: ConfirmNewPasswordCredentials,
+  ) => Promise<void>;
   resetPassword: (credentials: ResetPasswordCredentials) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -50,17 +52,15 @@ export const useAuthStore = create<AuthStore>((set) => {
     signInWithGoogle: async (): Promise<FirebaseAuth.User> => {
       throw new Error("Sign in with Google not implemented");
     },
-
     signInWithEmailAndPassword: async (): Promise<FirebaseAuth.User> => {
       throw new Error("Sign in with Email and Password not implemented");
     },
-
     signUpWithEmailAndPassword: async (): Promise<FirebaseAuth.User> => {
       throw new Error("Sign up with Email and Password not implemented");
     },
     signOut: async () => {},
-
     resetPassword: async () => {},
+    confirmNewPassword: async () => {},
   };
 
   FirebaseAuth.onAuthStateChanged(auth, async (user) => {
@@ -106,7 +106,6 @@ export const useAuthStore = create<AuthStore>((set) => {
         console.error("Erro ao fazer login com Google:", error);
 
         set({ error: error as FirebaseAuth.AuthError });
-
         throw error;
       } finally {
         set({ isLoading: false });
@@ -133,7 +132,6 @@ export const useAuthStore = create<AuthStore>((set) => {
         console.error("Erro ao fazer login com email/senha:", error);
 
         set({ error: error as FirebaseAuth.AuthError });
-
         throw error;
       } finally {
         set({ isLoading: false });
@@ -175,7 +173,6 @@ export const useAuthStore = create<AuthStore>((set) => {
         console.error("Erro ao criar conta:", error);
 
         set({ error: error as FirebaseAuth.AuthError });
-
         throw error;
       } finally {
         set({ isLoading: false });
@@ -193,6 +190,28 @@ export const useAuthStore = create<AuthStore>((set) => {
         console.error("Erro ao enviar email de redefinição de senha:", error);
 
         set({ error: error as FirebaseAuth.AuthError });
+        throw error;
+      } finally {
+        set({ isLoading: false });
+      }
+    },
+
+    confirmNewPassword: async (credentials: ConfirmNewPasswordCredentials) => {
+      set({ isLoading: true, error: null });
+
+      try {
+        await FirebaseAuth.confirmPasswordReset(
+          auth,
+          credentials.oobCode,
+          credentials.password,
+        );
+
+        set({ error: null });
+      } catch (error) {
+        console.error("Erro ao redefinir senha:", error);
+
+        set({ error: error as FirebaseAuth.AuthError });
+        throw error;
       } finally {
         set({ isLoading: false });
       }

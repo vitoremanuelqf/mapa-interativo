@@ -1,3 +1,43 @@
+export const confirmNewPasswordErrors: Record<
+  string,
+  { title: string; description: string }
+> = {
+  "auth/expired-action-code": {
+    title: "Link expirado:",
+    description:
+      "O link de redefinição de senha expirou. Solicite um novo e tente novamente.",
+  },
+  "auth/invalid-action-code": {
+    title: "Código inválido:",
+    description:
+      "O link de redefinição de senha é inválido ou já foi utilizado.",
+  },
+  "auth/user-disabled": {
+    title: "Usuário desativado:",
+    description:
+      "A conta deste usuário foi desativada. Entre em contato com o suporte.",
+  },
+  "auth/user-not-found": {
+    title: "Usuário não encontrado:",
+    description: "Nenhuma conta foi encontrada para este link de redefinição.",
+  },
+  "auth/weak-password": {
+    title: "Senha muito fraca:",
+    description:
+      "A nova senha é muito fraca. Tente usar uma senha mais forte com letras, números e símbolos.",
+  },
+  "auth/internal-error": {
+    title: "Erro interno:",
+    description:
+      "Ocorreu um problema ao redefinir sua senha. Tente novamente em instantes.",
+  },
+  "unknown/error": {
+    title: "Erro desconhecido:",
+    description:
+      "Ocorreu um erro inesperado ao definir a nova senha. Tente novamente mais tarde.",
+  },
+};
+
 export const resetPasswordErrors: Record<
   string,
   { title: string; description: string }
@@ -88,10 +128,11 @@ export const signUpErrors: Record<
 };
 
 export const formatErrorMessages = (
-  type: "reset-password" | "sign-in" | "sign-up",
+  type: "confirm-new-password" | "reset-password" | "sign-in" | "sign-up",
   code: string,
 ) => {
   const errorMessages = {
+    "confirm-new-password": confirmNewPasswordErrors,
     "reset-password": resetPasswordErrors,
     "sign-in": signInErrors,
     "sign-up": signUpErrors,

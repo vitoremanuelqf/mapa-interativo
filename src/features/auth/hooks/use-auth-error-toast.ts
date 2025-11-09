@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { formatErrorMessages } from "@/lib/messages/format-error-messages";
 
 export function useAuthErrorToast(
-  context: "sign-in" | "sign-up" | "reset-password",
+  context: "confirm-new-password" | "reset-password" | "sign-in" | "sign-up",
 ) {
   const { error, clearError } = useAuthStore();
 

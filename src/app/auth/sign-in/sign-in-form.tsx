@@ -38,7 +38,7 @@ export function SignInForm() {
 
   useAuthErrorToast("sign-in");
 
-  const { signInWithEmailAndPassword, signInWithGoogle, isLoading, error } =
+  const { signInWithEmailAndPassword, signInWithGoogle, isLoading } =
     useAuthStore();
 
   const form = useForm<z.infer<typeof signInSchema>>({
@@ -117,7 +117,7 @@ export function SignInForm() {
             />
 
             <NextLink
-              href={"/recuperar-senha"}
+              href={"/auth/reset-password"}
               className="ml-auto text-xs text-muted-foreground hover:underline"
             >
               Esqueceu sua senha?
