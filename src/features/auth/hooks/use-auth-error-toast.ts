@@ -1,26 +1,23 @@
-import { useEffect } from "react";
-
-import { useAuthStore } from "@/features/auth/stores/use-auth-store";
-
+// hooks/use-auth-error-toast.ts
 import { toast } from "sonner";
-
+import { AuthErrorCustom } from "@/lib/auth/auth-error-custom";
 import { formatErrorMessages } from "@/lib/messages/format-error-messages";
 
-export function useAuthErrorToast(
-  context: "confirm-new-password" | "reset-password" | "sign-in" | "sign-up",
-) {
-  const { error, clearError } = useAuthStore();
+type AuthContext =
+  | "confirm-new-password"
+  | "reset-password"
+  | "sign-in"
+  | "sign-up";
 
-  useEffect(() => {
-    if (error?.code) {
-      const errorMessage = formatErrorMessages(context, error.code);
+export function useAuthErrorToast(context: AuthContext) {
+  return (err: unknown) => {
+    if (!(err instanceof AuthErrorCustom)) return;
 
-      toast(errorMessage.title, {
-        description: errorMessage.description,
-        position: "top-right",
-      });
+    const errorMessage = formatErrorMessages(context, err.code);
 
-      clearError();
-    }
-  }, [error, clearError, context]);
+    toast(errorMessage.title, {
+      description: errorMessage.description,
+      position: "top-right",
+    });
+  };
 }

@@ -1,17 +1,18 @@
 "use client";
 
-import { useAuthStore } from "@/features/auth/stores/use-auth-store";
+import { signOut } from "@/features/auth/services/sign-out";
 
 export default function Dashboard() {
-  const { user, signOut } = useAuthStore();
-  console.log("🚀 ~ Home ~ user:", user);
-
   return (
     <div>
       <h1>Olá Dashboard!</h1>
-      <p>{user ? user.displayName : ""}</p>
-
-      {user && <button onClick={signOut}>Sair</button>}
+      <button
+        onClick={async () => {
+          await signOut();
+        }}
+      >
+        Sair
+      </button>
     </div>
   );
 }

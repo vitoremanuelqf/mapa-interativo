@@ -8,7 +8,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useAuthErrorToast } from "@/features/auth/hooks/use-auth-error-toast";
-import { useAuthStore } from "@/features/auth/stores/use-auth-store";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +29,8 @@ import {
 import { Loader2 } from "lucide-react";
 
 import { confirmNewPasswordSchema } from "./confirm-new-password-form-schema";
+import { useState } from "react";
+import { confirmNewPassword } from "@/features/auth/services/confirm-new-password";
 
 export function ConfirmNewPasswordForm() {
   const { push } = useRouter();
@@ -37,9 +38,9 @@ export function ConfirmNewPasswordForm() {
 
   const oobCode = searchParams.get("oobCode");
 
-  useAuthErrorToast("confirm-new-password");
+  const [isLoading, setIsloading] = useState(false);
 
-  const { confirmNewPassword, isLoading } = useAuthStore();
+  const showAuthError = useAuthErrorToast("confirm-new-password");
 
   const form = useForm<z.infer<typeof confirmNewPasswordSchema>>({
     resolver: zodResolver(confirmNewPasswordSchema),
@@ -50,12 +51,19 @@ export function ConfirmNewPasswordForm() {
   });
 
   async function onSubmit(values: z.infer<typeof confirmNewPasswordSchema>) {
-    await confirmNewPassword({
-      oobCode: oobCode || "",
-      password: values.password,
-    }).then(() => {
-      push("/auth/sign-in");
-    });
+    setIsloading(true);
+
+    try {
+      await confirmNewPassword({
+        newPassword: values.password,
+        oobCode: oobCode as string,
+      });
+      push("/dashboard");
+    } catch (err) {
+      showAuthError(err);
+    } finally {
+      setIsloading(false);
+    }
   }
 
   return (

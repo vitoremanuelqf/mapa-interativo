@@ -9,7 +9,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useAuthErrorToast } from "@/features/auth/hooks/use-auth-error-toast";
-import { useAuthStore } from "@/features/auth/stores/use-auth-store";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,14 +31,16 @@ import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 import { signUpSchema } from "./sign-up-form-schema";
+import { useState } from "react";
+import { signInWithGoogle } from "@/features/auth/services/sign-in-with-google";
+import { signUp } from "@/features/auth/services/sign-up";
 
 export function SignUpForm() {
   const { push } = useRouter();
 
-  useAuthErrorToast("sign-up");
+  const [isLoading, setIsloading] = useState(false);
 
-  const { signUpWithEmailAndPassword, signInWithGoogle, isLoading } =
-    useAuthStore();
+  const showAuthError = useAuthErrorToast("sign-up");
 
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
@@ -52,15 +53,29 @@ export function SignUpForm() {
   });
 
   async function handleSignInWithGoogle() {
-    await signInWithGoogle().then(() => {
-      push("/");
-    });
+    setIsloading(true);
+
+    try {
+      await signInWithGoogle();
+      push("/dashboard");
+    } catch (err) {
+      showAuthError(err);
+    } finally {
+      setIsloading(false);
+    }
   }
 
   async function onSubmit(values: z.infer<typeof signUpSchema>) {
-    await signUpWithEmailAndPassword(values).then(() => {
-      push("/");
-    });
+    setIsloading(true);
+
+    try {
+      await signUp(values);
+      push("/dashboard");
+    } catch (err) {
+      showAuthError(err);
+    } finally {
+      setIsloading(false);
+    }
   }
 
   return (

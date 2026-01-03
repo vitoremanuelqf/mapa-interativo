@@ -8,7 +8,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useAuthErrorToast } from "@/features/auth/hooks/use-auth-error-toast";
-import { useAuthStore } from "@/features/auth/stores/use-auth-store";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,13 +30,15 @@ import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 import { resetPasswordSchema } from "./reset-password-form-schema";
+import { useState } from "react";
+import { resetPassword } from "@/features/auth/services/reset-password";
 
 export function ResetPasswordForm() {
   const { push } = useRouter();
 
-  useAuthErrorToast("reset-password");
+  const [isLoading, setIsloading] = useState(false);
 
-  const { resetPassword, signInWithGoogle, isLoading } = useAuthStore();
+  const showAuthError = useAuthErrorToast("reset-password");
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -46,16 +47,19 @@ export function ResetPasswordForm() {
     },
   });
 
-  async function handleSignInWithGoogle() {
-    await signInWithGoogle().then(() => {
-      push("/");
-    });
-  }
+  async function handleSignInWithGoogle() {}
 
   async function onSubmit(values: z.infer<typeof resetPasswordSchema>) {
-    await resetPassword(values).then(() => {
-      push("/auth/sign-in");
-    });
+    setIsloading(true);
+
+    try {
+      await resetPassword(values);
+      push("/dashboard");
+    } catch (err) {
+      showAuthError(err);
+    } finally {
+      setIsloading(false);
+    }
   }
 
   return (

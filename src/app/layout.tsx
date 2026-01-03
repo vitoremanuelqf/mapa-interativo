@@ -4,6 +4,7 @@ import { Roboto } from "next/font/google";
 import "./globals.css";
 
 import { Toaster } from "@/components/ui/sonner";
+import { UserProvider } from "@/contexts/user-context";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -23,7 +24,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={`${roboto.variable} antialiased`}>
         <Toaster theme="light" />
-        {children}
+        <UserProvider>{children}</UserProvider>
       </body>
     </html>
   );
