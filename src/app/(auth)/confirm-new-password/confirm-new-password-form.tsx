@@ -58,7 +58,7 @@ export function ConfirmNewPasswordForm() {
         newPassword: values.password,
         oobCode: oobCode as string,
       });
-      push("/dashboard");
+      push("/home");
     } catch (err) {
       showAuthError(err);
     } finally {

@@ -26,7 +26,7 @@ export const createUser = async ({
     await setDoc(userRef, {
       displayName,
       email,
-      photoURL,
+      ...(photoURL && { photoURL }),
       role: "user",
       createdAt: serverTimestamp(),
     });

@@ -22,7 +22,7 @@ import {
 
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/features/user/hooks/use-user";
 
 import { formatNamePart } from "@/utils/formatting/format-name-part";
 import { signOut } from "@/features/auth/services/sign-out";
@@ -36,16 +36,16 @@ export function NavUser() {
   const { user } = useUser();
 
   const userName = formatNamePart(user?.displayName, "first");
-  const userEmail = user?.email ?? "";
+  const userEmail = user?.email ?? undefined;
   const userNameInitials = formatNamePart(user?.displayName, "initials");
-  const userPhotoURL = user?.photoURL ?? "";
+  const userPhotoURL = user?.photoURL ?? undefined;
 
   const handleSignOut = async () => {
     setIsloading(true);
 
     try {
       await signOut();
-      push("/auth/sign-in");
+      push("/sign-in");
     } catch (err) {
       console.log(err);
     } finally {

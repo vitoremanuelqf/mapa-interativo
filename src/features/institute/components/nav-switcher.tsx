@@ -1,6 +1,6 @@
 "use client";
 
-import { Armchair, ChevronsUpDown, Plus } from "lucide-react";
+import { University, ChevronsUpDown, Plus } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { SidebarMenuButton } from "@/components/ui/sidebar";
+import useInstitute from "../../user/hooks/use-user-institutes";
+import { useUser } from "@/features/user/hooks/use-user";
 
 interface ISidebarNavSwitcherProps {
   uid: string;
@@ -25,6 +27,13 @@ export function SidebarNavSwitcher({
   institute,
   defaultInstitute,
 }: ISidebarNavSwitcherProps) {
+  const { institutes } = useInstitute({ uid });
+
+  const { profile } = useUser();
+  console.log("🚀 ~ SidebarNavSwitcher ~ profile:", profile);
+
+  console.log("🚀 ~ SidebarNavSwitcher ~ institutes:", institutes);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -33,7 +42,7 @@ export function SidebarNavSwitcher({
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
           <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-            <Armchair className="size-4" />
+            <University className="size-4" />
           </div>
 
           <div className="grid flex-1 text-left text-sm leading-tight">
@@ -56,7 +65,7 @@ export function SidebarNavSwitcher({
         </DropdownMenuLabel>
         <DropdownMenuItem className="gap-2 p-2">
           <div className="flex size-6 items-center justify-center rounded-md border">
-            <Armchair className="size-3.5 shrink-0" />
+            <University className="size-3.5 shrink-0" />
           </div>
           IFSP
           <DropdownMenuShortcut>⌘1</DropdownMenuShortcut>
@@ -64,14 +73,16 @@ export function SidebarNavSwitcher({
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem className="gap-2 p-2" disabled>
-          <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-            <Plus className="size-4" />
-          </div>
-          <div className="text-muted-foreground font-medium">
-            Adicionar um novo Instituto
-          </div>
-        </DropdownMenuItem>
+        {profile?.role === "admin" && (
+          <DropdownMenuItem className="gap-2 p-2">
+            <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+              <Plus className="size-4" />
+            </div>
+            <div className="text-muted-foreground font-medium">
+              Adicionar um novo Instituto
+            </div>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -1,9 +1,9 @@
-import { SidebarDashboard } from "@/components/sidebar/sidebar";
+import { SidebarDashboard } from "@/components/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Mapa Interativo IFSP | Dashboard",
+  title: "Mapa Interativo IFSP | Instituto",
 };
 
 export default function DashboardLayout({

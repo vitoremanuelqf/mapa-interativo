@@ -13,11 +13,16 @@ import { NavUser } from "@/features/user/components/nav-user";
 import { sidebarItems } from "./sidebar-config";
 import { SidebarNavMain } from "./sidebar-nav-main";
 import { SidebarNavSwitcher } from "@/features/institute/components/nav-switcher";
+import { useUser } from "@/features/user/hooks/use-user";
 
 export function SidebarDashboard({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
-  const menu = sidebarItems({ institute: "1" });
+  const { profile } = useUser();
+
+  const menu = sidebarItems({ instituteId: "1", rule: profile?.role });
+
+  if (!profile) return null;
 
   return (
     <Sidebar variant="sidebar" {...props}>

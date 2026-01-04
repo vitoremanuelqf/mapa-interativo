@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { useForm } from "react-hook-form";
 
-import { z } from "zod";
+import { set, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useAuthErrorToast } from "@/features/auth/hooks/use-auth-error-toast";
@@ -30,25 +30,23 @@ import {
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
-import { signUpSchema } from "./sign-up-form-schema";
+import { signInSchema } from "./sign-in-form-schema";
+import { signIn } from "@/features/auth/services/sign-in";
 import { useState } from "react";
 import { signInWithGoogle } from "@/features/auth/services/sign-in-with-google";
-import { signUp } from "@/features/auth/services/sign-up";
 
-export function SignUpForm() {
+export function SignInForm() {
   const { push } = useRouter();
 
   const [isLoading, setIsloading] = useState(false);
 
-  const showAuthError = useAuthErrorToast("sign-up");
+  const showAuthError = useAuthErrorToast("sign-in");
 
-  const form = useForm<z.infer<typeof signUpSchema>>({
-    resolver: zodResolver(signUpSchema),
+  const form = useForm<z.infer<typeof signInSchema>>({
+    resolver: zodResolver(signInSchema),
     defaultValues: {
-      displayName: "",
       email: "",
       password: "",
-      passwordConfirm: "",
     },
   });
 
@@ -57,7 +55,7 @@ export function SignUpForm() {
 
     try {
       await signInWithGoogle();
-      push("/dashboard");
+      push("/home");
     } catch (err) {
       showAuthError(err);
     } finally {
@@ -65,12 +63,12 @@ export function SignUpForm() {
     }
   }
 
-  async function onSubmit(values: z.infer<typeof signUpSchema>) {
+  async function onSubmit(values: z.infer<typeof signInSchema>) {
     setIsloading(true);
 
     try {
-      await signUp(values);
-      push("/dashboard");
+      await signIn(values);
+      push("/home");
     } catch (err) {
       showAuthError(err);
     } finally {
@@ -90,29 +88,13 @@ export function SignUpForm() {
               height={143}
               className="w-full max-w-60 m-auto mb-4"
             />
-            <CardTitle>Criar conta:</CardTitle>
-            <CardDescription>Inscreva-se para começar.</CardDescription>
+            <CardTitle>Acessar conta:</CardTitle>
+            <CardDescription>
+              Entre com suas credenciais para acessar sua conta.
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="w-full flex flex-col gap-4">
-            <FormField
-              control={form.control}
-              name="displayName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome:</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Informe seu nome:"
-                      type="text"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-400" />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="email"
@@ -149,26 +131,8 @@ export function SignUpForm() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="passwordConfirm"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmar senha:</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Confirme sua senha:"
-                      type="password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-400" />
-                </FormItem>
-              )}
-            />
-
             <NextLink
-              href={"/auth/reset-password"}
+              href={"/reset-password"}
               className="ml-auto text-xs text-muted-foreground hover:underline"
             >
               Esqueceu sua senha?
@@ -178,7 +142,7 @@ export function SignUpForm() {
               {isLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Criar"
+                "Entrar"
               )}
             </Button>
 
@@ -209,7 +173,7 @@ export function SignUpForm() {
               <Separator className="shrink" />
 
               <span className="min-w-fit text-sm text-muted-foreground">
-                Já possui uma conta?
+                Não tem uma conta?
               </span>
 
               <Separator className="shrink" />
@@ -218,13 +182,13 @@ export function SignUpForm() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => push("/auth/sign-in")}
+              onClick={() => push("/sign-up")}
               disabled={isLoading}
             >
               {isLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Entrar"
+                "Criar conta"
               )}
             </Button>
           </CardContent>

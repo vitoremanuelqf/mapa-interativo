@@ -1,24 +1,81 @@
-import { ShoppingBag } from "lucide-react";
+import { LucideIcon, Settings, Users, Shield, Map } from "lucide-react";
 
-interface SidebarDashboardItemsProps {
-  institute: string;
+type UserRule = "admin" | "manager" | "user";
+
+interface SidebarSubItem {
+  title: string;
+  url: string;
+  icon?: LucideIcon;
+  allowedRoles: UserRule[];
 }
 
-export const sidebarItems = ({ institute }: SidebarDashboardItemsProps) => {
-  const platformMenu = [
+interface SidebarMenu {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  allowedRoles: UserRule[];
+  isActive?: boolean;
+  items?: SidebarSubItem[];
+}
+
+interface SidebarDashboardItemsProps {
+  instituteId: string;
+  rule: UserRule;
+}
+
+export const sidebarItems = ({
+  instituteId,
+  rule,
+}: SidebarDashboardItemsProps): SidebarMenu[] => {
+  const menus: SidebarMenu[] = [
     {
-      title: "Listas",
-      url: "#",
-      icon: ShoppingBag,
+      title: "Instituições",
+      icon: Settings,
+      url: "/institutes",
       isActive: true,
+      allowedRoles: ["admin"],
+    },
+    {
+      title: "Mapa",
+      icon: Map,
+      url: "#",
+      isActive: true,
+      allowedRoles: ["admin", "manager", "user"],
       items: [
         {
-          title: "Lista de Compras",
-          url: `/institute/${institute}/shopping-list`,
+          title: "Mapa Interativo",
+          url: `/institute/${instituteId}/map`,
+          allowedRoles: ["admin", "manager", "user"],
         },
       ],
     },
   ];
 
-  return platformMenu;
+  return menus
+    .map((menu) => {
+      // 🔹 Menu SEM submenu
+      if (!menu.items) {
+        return menu;
+      }
+
+      // 🔹 Menu COM submenu → filtra itens
+      const filteredItems = menu.items.filter((item) =>
+        item.allowedRoles.includes(rule),
+      );
+
+      return {
+        ...menu,
+        items: filteredItems,
+      };
+    })
+    .filter((menu) => {
+      // 🔹 Regra do menu
+      if (!menu.allowedRoles.includes(rule)) return false;
+
+      // 🔹 Se não tem submenu, mantém
+      if (!menu.items) return true;
+
+      // 🔹 Se tem submenu, só mantém se sobrou item
+      return menu.items.length > 0;
+    });
 };

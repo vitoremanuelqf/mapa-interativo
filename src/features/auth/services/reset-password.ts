@@ -1,4 +1,3 @@
-// features/auth/services/reset-password.ts
 import { sendPasswordResetEmail } from "firebase/auth";
 
 import { auth } from "@/firebase/client";

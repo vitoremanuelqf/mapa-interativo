@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { resetPasswordSchema } from "./reset-password-form-schema";
 import { useState } from "react";
 import { resetPassword } from "@/features/auth/services/reset-password";
+import { signInWithGoogle } from "@/features/auth/services/sign-in-with-google";
 
 export function ResetPasswordForm() {
   const { push } = useRouter();
@@ -47,14 +48,25 @@ export function ResetPasswordForm() {
     },
   });
 
-  async function handleSignInWithGoogle() {}
+  async function handleSignInWithGoogle() {
+    setIsloading(true);
+
+    try {
+      await signInWithGoogle();
+      push("/home");
+    } catch (err) {
+      showAuthError(err);
+    } finally {
+      setIsloading(false);
+    }
+  }
 
   async function onSubmit(values: z.infer<typeof resetPasswordSchema>) {
     setIsloading(true);
 
     try {
       await resetPassword(values);
-      push("/dashboard");
+      push("/sign-in");
     } catch (err) {
       showAuthError(err);
     } finally {
@@ -147,7 +159,7 @@ export function ResetPasswordForm() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => push("/auth/sign-up")}
+              onClick={() => push("/sign-up")}
               disabled={isLoading}
             >
               {isLoading ? (

@@ -4,7 +4,7 @@ export function formatNamePart(
   displayName?: string | null,
   part: NamePart = "first",
 ) {
-  if (!displayName) return "";
+  if (!displayName) return undefined;
 
   const parts = displayName.trim().split(" ").filter(Boolean);
   const first = parts[0];

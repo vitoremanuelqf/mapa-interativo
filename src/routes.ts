@@ -1,10 +1,10 @@
 export const publicRoutes = [
-  "/auth/sign-in",
-  "/auth/sign-up",
-  "/auth/confirm-new-password",
-  "/auth/reset-password",
+  "/sign-in",
+  "/sign-up",
+  "/confirm-new-password",
+  "/reset-password",
 ];
 
-export const protectedRoutes = ["/dashboard"];
+export const protectedRoutes = ["/home", "/institutes"];
 
 export const indifferentRoutes = ["/"];
