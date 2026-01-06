@@ -19,7 +19,7 @@ export const createInstitute = async ({
     const newInstituteRef = await addDoc(institutesRef, {
       institute,
       campus,
-      members: [uid],
+      // members: [uid],
       roles: {
         [uid]: "admin",
       },

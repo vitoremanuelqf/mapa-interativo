@@ -32,9 +32,6 @@ export function UserProvider({ children }: TUserContextProvider) {
   const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  console.log("🚀 ~ UserProvider ~ user:", user);
-  console.log("🚀 ~ UserProvider ~ profile:", profile);
-
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
       try {

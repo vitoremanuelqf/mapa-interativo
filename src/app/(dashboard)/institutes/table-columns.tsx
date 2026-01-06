@@ -121,7 +121,7 @@ export function columns({ navigate }: IColumns): ColumnDef<IInstitute>[] {
               <DropdownMenuItem asChild>
                 <Button
                   variant="ghost"
-                  onClick={() => navigate?.(`/institute/${instituteId}`)}
+                  onClick={() => navigate?.(`/institutes/${instituteId}`)}
                   className="w-full justify-start font-normal !p-2"
                 >
                   Acessar

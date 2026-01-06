@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import {
   type ColumnFiltersState,
@@ -14,8 +13,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { Plus } from "lucide-react";
 import clsx from "clsx";
+import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,25 +28,30 @@ import {
 } from "@/components/ui/table";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import { columns } from "./table-columns";
-import useInstitutes from "@/features/institute/hooks/use-get-institutes";
-import useDeleteInstitute from "@/features/institute/hooks/use-delete-institute";
+import { columns } from "./table-members-columns";
+import { useParams } from "next/navigation";
+import { AddMemberForm } from "./add-member-form";
+import { useGetInstituteMembers } from "@/features/institute/hooks/use-get-institute-members";
 
-export function TableInstitutes() {
-  const { push } = useRouter();
+export function TableMembers() {
   const isMobile = useIsMobile();
+
+  const params = useParams();
+
+  const instituteId = params.instituteId as string;
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
 
-  const { institutes = [] } = useInstitutes();
+  const memoizedColumns = useMemo(() => columns(), []);
+  const { data: members = [], isLoading } = useGetInstituteMembers({
+    instituteId,
+  });
 
   const table = useReactTable({
-    data: institutes,
-    columns: columns({
-      navigate: push,
-    }),
+    data: members,
+    columns: memoizedColumns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
@@ -62,42 +66,33 @@ export function TableInstitutes() {
       columnFilters,
       rowSelection,
       columnVisibility: {
-        roles: !isMobile,
+        role: !isMobile,
       },
     },
 
     initialState: {
       pagination: {
         pageIndex: 0,
-        pageSize: 20,
+        pageSize: 10,
       },
     },
   });
 
   return (
     <div className="w-full">
-      {/* =====================
-       * Toolbar
-       * ===================== */}
       <div className="flex items-center mb-4 gap-4">
         <Input
-          placeholder="Filtrar por campus..."
-          value={(table.getColumn("campus")?.getFilterValue() as string) ?? ""}
+          placeholder="Filtrar por email..."
+          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("campus")?.setFilterValue(event.target.value)
+            table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
 
-        <Button onClick={() => push("/institutes/create")} className="ml-auto">
-          <Plus />
-          Criar Instituto
-        </Button>
+        <AddMemberForm instituteId={instituteId} />
       </div>
 
-      {/* =====================
-       * Table
-       * ===================== */}
       <div className="overflow-hidden rounded-md border">
         <Table className="table-fixed">
           <TableHeader>
@@ -106,11 +101,11 @@ export function TableInstitutes() {
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className={`
-                      !p-2
-                      ${header.id === "select" ? "w-12 text-center !pl-4" : ""}
-                      ${header.id === "actions" ? "text-right !pr-4" : ""}
-                    `}
+                    className={clsx(
+                      "!p-2",
+                      header.id === "select" && "w-12 text-center !pl-4",
+                      header.id === "actions" && "text-right !pr-4",
+                    )}
                   >
                     {header.isPlaceholder
                       ? null
@@ -134,19 +129,13 @@ export function TableInstitutes() {
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className={`
-                        !p-2
-                        ${
-                          cell.column.id === "select"
-                            ? "w-12 flex justify-center !pl-4"
-                            : ""
-                        }
-                        ${
-                          cell.column.id === "actions"
-                            ? "flex justify-end !pr-4"
-                            : ""
-                        }
-                      `}
+                      className={clsx(
+                        "!p-2",
+                        cell.column.id === "select" &&
+                          "w-12 flex justify-center !pl-4",
+                        cell.column.id === "actions" &&
+                          "flex justify-end !pr-4",
+                      )}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
@@ -162,7 +151,7 @@ export function TableInstitutes() {
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
-                  Nenhum instituto encontrado.
+                  Nenhum membro encontrado.
                 </TableCell>
               </TableRow>
             )}
@@ -170,9 +159,6 @@ export function TableInstitutes() {
         </Table>
       </div>
 
-      {/* =====================
-       * Pagination
-       * ===================== */}
       <div className="flex items-center justify-end space-x-2 py-4 gap-4">
         <div className="hidden text-muted-foreground flex-1 text-sm md:flex">
           {table.getFilteredSelectedRowModel().rows.length} de{" "}

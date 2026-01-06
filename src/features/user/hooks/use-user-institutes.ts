@@ -1,35 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { IInstitute } from "@/features/institute/models/institute";
+import { getUserInstitutes } from "../services/get-user-institutes";
+import { IInstitute } from "@/features/institute/models/institute";
 
-import { getCollection } from "@/firebase/services/get-collection";
-
-interface IUseUserInstitutesProps {
-  uid: string;
+interface UseUserInstitutesParams {
+  instituteIds?: string[];
 }
 
-export default function useUserInstitutes({ uid }: IUseUserInstitutesProps) {
-  const { data, isLoading } = useQuery<IInstitute[]>({
-    queryKey: ["institutes", uid],
-    queryFn: async () => {
-      const result = await getCollection<IInstitute>({
-        path: "institutes",
-        filters: [
-          {
-            field: "members",
-            operator: "array-contains",
-            value: uid,
-          },
-        ],
-      });
-
-      return result.documents;
-    },
-    enabled: !!uid,
+export function useUserInstitutes({
+  instituteIds = [],
+}: UseUserInstitutesParams) {
+  return useQuery<IInstitute[]>({
+    queryKey: ["user-institutes", instituteIds],
+    queryFn: () => getUserInstitutes({ instituteIds }),
+    enabled: instituteIds.length > 0,
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
-
-  return {
-    institutes: data,
-    isInstituteLoading: isLoading,
-  };
 }
